@@ -113,7 +113,7 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace 'com.vadinsavin.StepCounter'
+    namespace 'com.subhosting.StepCounter'
     defaultConfig {
         applicationId 'com.subhosting.StepCounter'
         minSdkVersion rootProject.ext.minSdkVersion
