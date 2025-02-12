@@ -23,7 +23,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Health Tracker</Text>
+      {/* <Text style={styles.title}>Health Tracker</Text> */}
       
       {/* User Info */}
       <Text style={styles.userInfo}>User ID: {user.userId || 'N/A'}</Text>

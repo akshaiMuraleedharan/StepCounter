@@ -1,13 +1,13 @@
 import React, { useContext } from 'react';
 import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../types/navigation';
 
 export const AppleSignInButton: React.FC = () => {
   const { setUser } = useContext(AuthContext);
-  const navigation = useNavigation();
-
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const handleAppleSignIn = async () => {
     try {
       const credential = await AppleAuthentication.signInAsync({
@@ -17,16 +17,21 @@ export const AppleSignInButton: React.FC = () => {
         ],
       });
 
-      setUser({
+      const userData = {
         userId: credential.user,
-        email: credential.email ?? undefined,
-        name: credential.fullName ? {
-          givenName: credential.fullName.givenName ?? undefined,
-          familyName: credential.fullName.familyName ?? undefined,
-        } : undefined,
-      });
+        email: credential.email ?? 'N/A', // Apple may not return email after first login
+        name: credential.fullName
+          ? {
+              givenName: credential.fullName.givenName ?? 'N/A',
+              familyName: credential.fullName.familyName ?? '',
+            }
+          : { givenName: 'N/A', familyName: '' },
+      };
 
-      navigation.navigate('Dashboard');
+      setUser(userData);
+
+      console.log('Apple Sign-In Success:', userData);
+      navigation.navigate('Dashboard', { user: userData }); // Ensure this matches your navigator
     } catch (error) {
       console.error('Apple Sign-In error:', error);
     }
