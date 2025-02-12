@@ -7,9 +7,9 @@ import { RootStackParamList } from '../types/navigation'; // Adjust the import p
 export const GoogleSignInButton: React.FC = () => {
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId: 'YOUR_EXPO_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
-    iosClientId: 'YOUR_IOS_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
-    androidClientId: 'YOUR_ANDROID_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
-    webClientId: 'YOUR_WEB_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+    iosClientId: '339321272963-k9744954ck40i5t5pjq85omgdb96o8f7.apps.googleusercontent.com',
+    androidClientId: '339321272963-v9mo75op60sg3o3b6qbvrbbo4bp7sdnj.apps.googleusercontent.com',
+    webClientId: '339321272963-0sgru210ruoebu4iku82bfsjjb6qj0fj.apps.googleusercontent.com',
   });
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
