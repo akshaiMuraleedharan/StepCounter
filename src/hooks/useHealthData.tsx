@@ -18,6 +18,8 @@ const permissions: HealthKitPermissions = {
       AppleHealthKit.Constants.Permissions.Steps,
       AppleHealthKit.Constants.Permissions.FlightsClimbed,
       AppleHealthKit.Constants.Permissions.DistanceWalkingRunning,
+      AppleHealthKit.Constants.Permissions.HeartRate,
+      AppleHealthKit.Constants.Permissions.OxygenSaturation,
     ],
     write: [],
   },
@@ -28,6 +30,8 @@ const useHealthData = (date: Date) => {
   const [steps, setSteps] = useState(0);
   const [flights, setFlights] = useState(0);
   const [distance, setDistance] = useState(0);
+  const [heartRate, setHeartRate] = useState(0);
+  const [bloodOxygen, setBloodOxygen] = useState(0);
 
   // iOS - HealthKit
   useEffect(() => {
@@ -65,43 +69,61 @@ const useHealthData = (date: Date) => {
     };
 
     AppleHealthKit.getStepCount(options, (err, results) => {
-      if (err) {
-        console.log('Error getting the steps');
-        return;
+      if (!err && results) {
+        setSteps(results.value);
       }
-      setSteps(results.value);
     });
 
     AppleHealthKit.getFlightsClimbed(options, (err, results) => {
-      if (err) {
-        console.log('Error getting the steps:', err);
-        return;
+      if (!err && results) {
+        setFlights(results.value);
       }
-      setFlights(results.value);
     });
 
     AppleHealthKit.getDistanceWalkingRunning(options, (err, results) => {
-      if (err) {
-        console.log('Error getting the steps:', err);
-        return;
+      if (!err && results) {
+        setDistance(results.value);
       }
-      setDistance(results.value);
     });
+
+    AppleHealthKit.getHeartRateSamples(
+      { startDate: new Date(date.setHours(0, 0, 0, 0)).toISOString() },
+      (err, results) => {
+        if (!err && results?.length > 0) {
+          const avgHeartRate =
+            results.reduce((sum, sample) => sum + sample.value, 0) /
+            results.length;
+          setHeartRate(Math.round(avgHeartRate));
+        }
+      }
+    );
+
+    AppleHealthKit.getOxygenSaturationSamples(
+      { startDate: new Date(date.setHours(0, 0, 0, 0)).toISOString() },
+      (err, results) => {
+        if (!err && results?.length > 0) {
+          const avgBloodOxygen =
+            results.reduce((sum, sample) => sum + sample.value, 0) /
+            results.length;
+          setBloodOxygen(Math.round(avgBloodOxygen));
+        }
+      }
+    );
   }, [hasPermissions, date]);
 
   // Android - Health Connect
   const readSampleData = async () => {
-    // initialize the client
     const isInitialized = await initialize();
     if (!isInitialized) {
       return;
     }
 
-    // request permissions
     await requestPermission([
       { accessType: 'read', recordType: 'Steps' },
       { accessType: 'read', recordType: 'Distance' },
       { accessType: 'read', recordType: 'FloorsClimbed' },
+      { accessType: 'read', recordType: 'HeartRate' },
+      { accessType: 'read', recordType: 'OxygenSaturation' },
     ]);
 
     const timeRangeFilter: TimeRangeFilter = {
@@ -110,26 +132,34 @@ const useHealthData = (date: Date) => {
       endTime: new Date(date.setHours(23, 59, 59, 999)).toISOString(),
     };
 
-    // Steps
     const steps = await readRecords('Steps', { timeRangeFilter });
-    const totalSteps = steps.reduce((sum, cur) => sum + cur.count, 0);
-    setSteps(totalSteps);
+    setSteps(steps.reduce((sum, cur) => sum + cur.count, 0));
 
-    // Distance
     const distance = await readRecords('Distance', { timeRangeFilter });
-    const totalDistance = distance.reduce(
-      (sum, cur) => sum + cur.distance.inMeters,
-      0
-    );
-    setDistance(totalDistance);
+    setDistance(distance.reduce((sum, cur) => sum + cur.distance.inMeters, 0));
 
-    // Floors climbed
     const floorsClimbed = await readRecords('FloorsClimbed', {
       timeRangeFilter,
     });
-    const totalFloors = floorsClimbed.reduce((sum, cur) => sum + cur.floors, 0);
-    setFlights(totalFloors);
-    // console.log(floorsClimbed);
+    setFlights(floorsClimbed.reduce((sum, cur) => sum + cur.floors, 0));
+
+    const heartRateRecords = await readRecords('HeartRate', { timeRangeFilter });
+    if (heartRateRecords.length > 0) {
+      const avgHeartRate =
+        heartRateRecords.reduce((sum, record) => sum + record.heartRate, 0) /
+        heartRateRecords.length;
+      setHeartRate(Math.round(avgHeartRate));
+    }
+
+    const bloodOxygenRecords = await readRecords('OxygenSaturation', {
+      timeRangeFilter,
+    });
+    if (bloodOxygenRecords.length > 0) {
+      const avgBloodOxygen =
+        bloodOxygenRecords.reduce((sum, record) => sum + record.percentage, 0) /
+        bloodOxygenRecords.length;
+      setBloodOxygen(Math.round(avgBloodOxygen));
+    }
   };
 
   useEffect(() => {
@@ -143,6 +173,8 @@ const useHealthData = (date: Date) => {
     steps,
     flights,
     distance,
+    heartRate,
+    bloodOxygen,
   };
 };
 
