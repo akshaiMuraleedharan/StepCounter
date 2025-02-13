@@ -31,7 +31,7 @@ export const AppleSignInButton: React.FC = () => {
       setUser(userData);
 
       console.log('Apple Sign-In Success:', userData);
-      navigation.navigate('Dashboard', { user: userData }); // Ensure this matches your navigator
+      navigation.navigate('Dashboard', { user: userData });
     } catch (error) {
       console.error('Apple Sign-In error:', error);
     }
